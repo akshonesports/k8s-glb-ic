@@ -1,0 +1,60 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: glb-ingress-controller
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: glb-ingress-controller
+  namespace: glb-ingress-controller
+  labels:
+    app.kubernetes.io/name: glb-ingress-controller
+    app.kubernetes.io/part-of: glb-ingress-controller
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: glb-ingress-controller-clusterrolebinding
+  labels:
+    app.kubernetes.io/name: glb-ingress-controller
+    app.kubernetes.io/part-of: glb-ingress-controller
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: cluster-admin
+subjects:
+- kind: ServiceAccount
+  name: glb-ingress-controller
+  namespace: glb-ingress-controller
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: glb-ingress-controller
+  namespace: glb-ingress-controller
+  labels:
+    app.kubernetes.io/name: glb-ingress-controller
+    app.kubernetes.io/part-of: glb-ingress-controller
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: glb-ingress-controller
+      app.kubernetes.io/part-of: glb-ingress-controller
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: glb-ingress-controller
+        app.kubernetes.io/part-of: glb-ingress-controller
+    spec:
+      serviceAccount: glb-ingress-controller
+      containers:
+      - name: glb-ingress-controller
+        image: akshonesports/k8s-glb-ic:latest
+        volumeMounts:
+        - name: ca-certificates
+          mountPath: /etc/ssl/certs
+      volumes:
+      - name: ca-certificates
+        hostPath:
+          path: /etc/ssl/certs
